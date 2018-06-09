@@ -1401,7 +1401,8 @@ MuseScore::MuseScore()
       if (!instrList2.isEmpty())
             loadInstrumentTemplates(instrList2);
 
-      preferencesChanged();
+      if (!MScore::noGui)
+            preferencesChanged();
       if (seq) {
             connect(seq, SIGNAL(started()), SLOT(seqStarted()));
             connect(seq, SIGNAL(stopped()), SLOT(seqStopped()));
@@ -6293,9 +6294,8 @@ int main(int argc, char* av[])
             qApp->processEvents();
             }
 
-      if (!converterMode && !pluginMode) {
+      if (!MScore::noGui)
             MuseScore::updateUiStyleAndTheme();
-            }
       else
             noSeq = true;
 
@@ -6375,12 +6375,11 @@ int main(int argc, char* av[])
       mscore->readLanguages(mscoreGlobalShare + "locale/languages.xml");
 
       if (!MScore::noGui) {
-            QSettings s;
-            if (!s.contains("firstStart")) {
+            if (preferences.getBool(PREF_APP_STARTUP_FIRSTSTART)) {
                   StartupWizard* sw = new StartupWizard;
                   sw->exec();
-                  s.setValue("firstStart", false);
-                  s.setValue("keyboardLayout", sw->keyboardLayout());
+                  preferences.setPreference(PREF_APP_STARTUP_FIRSTSTART, false);
+                  preferences.setPreference(PREF_APP_KEYBOARDLAYOUT, sw->keyboardLayout());
                   preferences.setPreference(PREF_UI_APP_LANGUAGE, sw->language());
                   setMscoreLocale(sw->language());
                   for (auto ws : Workspace::workspaces()) {
@@ -6392,7 +6391,7 @@ int main(int argc, char* av[])
                         }
                   delete sw;
                   }
-            QString keyboardLayout = s.value("keyboardLayout").toString();
+            QString keyboardLayout = preferences.getString(PREF_APP_KEYBOARDLAYOUT);
             StartupWizard::autoSelectShortcuts(keyboardLayout);
             }
 
